@@ -22,6 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #include "stm32f1xx_hal_can.h"
+#include "c620.h"
 
 void CAN_Filter_Config(void);
 
@@ -42,7 +43,7 @@ void MX_CAN_Init(void)
 
     /* USER CODE END CAN_Init 1 */
     hcan.Instance                  = CAN1;
-    hcan.Init.Prescaler            = 8;
+    hcan.Init.Prescaler            = 4;
     hcan.Init.Mode                 = CAN_MODE_LOOPBACK;
     hcan.Init.SyncJumpWidth        = CAN_SJW_1TQ;
     hcan.Init.TimeSeg1             = CAN_BS1_5TQ;
@@ -135,10 +136,10 @@ void CAN_Filter_Config(void)
     sFilterConfig.FilterBank           = 0;
     sFilterConfig.FilterMode           = CAN_FILTERMODE_IDMASK;
     sFilterConfig.FilterScale          = CAN_FILTERSCALE_32BIT;
-    sFilterConfig.FilterIdHigh         = (0x123 << 5);
+    sFilterConfig.FilterIdHigh         = (0x200 << 5);
     sFilterConfig.FilterIdLow          = 0x0000;
-    sFilterConfig.FilterMaskIdHigh     = (0x7FF << 5);
-    sFilterConfig.FilterMaskIdLow      = 0x0000;
+    sFilterConfig.FilterMaskIdHigh     = (0x7F0 << 5);
+    sFilterConfig.FilterMaskIdLow      = 0x0000 | 0x04 | 0x02;
     sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
     sFilterConfig.FilterActivation     = ENABLE;
 
@@ -174,6 +175,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, CAN_RxBuff);
 
     // TODO CAN总线接受消息中断事件代码
-    __NOP();
+    C620_Motor_Status_TypeDef status;
+    C620_Motor_Status_Init(&status, rxHeader.StdId, CAN_RxBuff);
 }
 /* USER CODE END 1 */

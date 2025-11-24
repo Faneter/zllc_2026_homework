@@ -22,7 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,6 +188,10 @@ void SysTick_Handler(void)
 
     count++;
     if (count == 1000) {
+        uint8_t data1[8] = {0x1F, 0xFF, 1, 1, 0x40, 0x00, 1, 1};
+        uint8_t data2[8] = {2, 2, 2, 2, 2, 2, 2, 2};
+        CAN_Send(0x201, data1, 8);
+        CAN_Send(0x202, data2, 8);
         __NOP();
     }
 

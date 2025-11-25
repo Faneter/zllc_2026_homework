@@ -131,7 +131,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle)
  */
 void CAN_Filter_Config(void)
 {
-    // TODO 滤波器ID配置
     CAN_FilterTypeDef sFilterConfig;
     sFilterConfig.FilterBank           = 0;
     sFilterConfig.FilterMode           = CAN_FILTERMODE_IDMASK;

@@ -26,8 +26,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
-#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -165,18 +163,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-/**
- * @brief 用于将输出流重定向到UART串口上
- *
- * @param ch 要发送的字符
- * @param f
- */
-int fputc(int ch, FILE *f)
-{
-    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)ch, 1);
-    return ch;
-}
 
 /**
  * @brief  Reception Event Callback (Rx event notification called after use of advanced reception service).

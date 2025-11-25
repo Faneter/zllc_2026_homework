@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "can.h"
+#include "debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -189,10 +190,12 @@ void SysTick_Handler(void)
     count++;
     if (count == 1000) {
         uint8_t data1[8] = {0x1F, 0xFF, 1, 1, 0x40, 0x00, 1, 1};
-        uint8_t data2[8] = {2, 2, 2, 2, 2, 2, 2, 2};
         CAN_Send(0x201, data1, 8);
-        CAN_Send(0x202, data2, 8);
-        __NOP();
+        // static uint8_t message[] = "abcd";
+        // HAL_UART_Transmit_DMA(&huart1, message, 4);
+        static float data_f[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+        print_debug(data_f, 4);
+        count = 0;
     }
 
     /* USER CODE END SysTick_IRQn 0 */

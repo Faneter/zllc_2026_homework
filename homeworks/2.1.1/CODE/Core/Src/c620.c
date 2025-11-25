@@ -25,7 +25,7 @@ int16_t convert_amps_to_raw(float current_amps)
     return (int16_t)roundf(current_amps * SCALE_FACTOR);
 }
 
-void C620_Motor_Status_Init(C620_Motor_Status_TypeDef *status, uint32_t stdId, uint8_t *data)
+void C620_Motor_Status_Init(C620_Motor_Status_TypeDef *status, uint32_t stdId, const uint8_t *data)
 {
     status->id          = stdId & 0x00F;
     status->angle       = convert_raw_to_angle((data[0] << 8) | data[1]);
@@ -36,8 +36,8 @@ void C620_Motor_Status_Init(C620_Motor_Status_TypeDef *status, uint32_t stdId, u
 
 void C620_Motor_Control_Init(C620_Motor_Control_Typedef *control, uint8_t *data)
 {
-    uint8_t start   = (control->id > 4) ? ((control->id - 4) * 2 - 1) : (control->id * 2 - 1);
+    uint8_t start   = (control->id > 4) ? ((control->id - 4) * 2 - 1) : (control->id * 2 - 2);
     uint16_t raw    = convert_amps_to_raw(control->current);
-    data[start]     = (raw && 0xFF00) >> 8;
-    data[start + 1] = raw && 0x00FF;
+    data[start]     = (raw & 0xFF00) >> 8;
+    data[start + 1] = raw & 0x00FF;
 }

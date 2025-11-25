@@ -18,7 +18,7 @@ typedef struct
 {
     uint8_t id;
     float angle;
-    uint16_t speed;
+    int16_t speed;
     float current;
     uint8_t temperature;
 } C620_Motor_Status_TypeDef;
@@ -30,7 +30,7 @@ typedef struct
  * @param stdId 收到的CAN报文的标识符
  * @param data 收到的数据
  */
-void C620_Motor_Status_Init(C620_Motor_Status_TypeDef *status, uint32_t stdId, uint8_t *data);
+void C620_Motor_Status_Init(C620_Motor_Status_TypeDef *status, uint32_t stdId, const uint8_t *data);
 
 /**
  * @brief 向C620电调发送报文数据

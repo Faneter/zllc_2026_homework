@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 #include "stm32f1xx_hal_can.h"
-#include "c620.h"
+#include "controller.h"
 
 void CAN_Filter_Config(void);
 
@@ -145,6 +145,20 @@ void CAN_Filter_Config(void)
     if (HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK) {
         Error_Handler();
     }
+
+    sFilterConfig.FilterBank           = 1;
+    sFilterConfig.FilterMode           = CAN_FILTERMODE_IDLIST;
+    sFilterConfig.FilterScale          = CAN_FILTERSCALE_32BIT;
+    sFilterConfig.FilterIdHigh         = (0x200 << 5);
+    sFilterConfig.FilterIdLow          = 0x0000 | 0x04 | 0x02;
+    sFilterConfig.FilterMaskIdHigh     = 0x0000;
+    sFilterConfig.FilterMaskIdLow      = 0x0000;
+    sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
+    sFilterConfig.FilterActivation     = ENABLE;
+
+    if (HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 void CAN_Send(uint32_t StdId, uint8_t *pData, uint8_t Len)
@@ -173,8 +187,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     CAN_RxHeaderTypeDef rxHeader;
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, CAN_RxBuff);
 
-    // TODO CAN总线接受消息中断事件代码
-    C620_Motor_Status_TypeDef status;
-    C620_Motor_Status_Init(&status, rxHeader.StdId, CAN_RxBuff);
+    CAN_RxHandler(rxHeader.StdId, CAN_RxBuff);
 }
 /* USER CODE END 1 */

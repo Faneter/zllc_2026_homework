@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "can.h"
 #include "debug.h"
+#include "controller.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,13 +189,12 @@ void SysTick_Handler(void)
     // TODO 系统定时器中断处理代码，此定时器每1ms产生一次中断
 
     count++;
-    if (count == 1000) {
-        uint8_t data1[8] = {0x1F, 0xFF, 1, 1, 0x40, 0x00, 1, 1};
-        CAN_Send(0x201, data1, 8);
-        // static uint8_t message[] = "abcd";
-        // HAL_UART_Transmit_DMA(&huart1, message, 4);
-        static float data_f[4] = {1.0f, 2.0f, 3.0f, 4.0f};
-        print_debug(data_f, 4);
+    if (count == 4) {
+        C620_Motor_PID_Update();
+        // uint8_t data1[8] = {0x1F, 0xFF, 1, 1, 0x40, 0x00, 1, 1};
+        // CAN_Send(0x201, data1, 8);
+        // static float data_f[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+        // print_debug(data_f, 4);
         count = 0;
     }
 

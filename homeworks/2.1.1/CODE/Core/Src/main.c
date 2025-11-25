@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "controller.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,6 +106,9 @@ int main(void)
 
     // 串口接受数据开始
     HAL_UARTEx_ReceiveToIdle_DMA(&huart1, UART_RxBuff, UART_RX_BUFF_LENGTH);
+
+    // 控制器配置
+    Controller_Init();
     /* USER CODE END 2 */
 
     /* Infinite loop */

@@ -190,7 +190,8 @@ void SysTick_Handler(void)
 
     count++;
     if (count == 4) {
-        C620_Motor_PID_Update();
+        int16_t speeds[8] = {80};
+        C620_Motor_Speed_PID_Update(speeds);
         // uint8_t data1[8] = {0x1F, 0xFF, 1, 1, 0x40, 0x00, 1, 1};
         // CAN_Send(0x201, data1, 8);
         // static float data_f[4] = {1.0f, 2.0f, 3.0f, 4.0f};

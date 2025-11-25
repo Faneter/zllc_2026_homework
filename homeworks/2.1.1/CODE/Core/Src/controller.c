@@ -8,20 +8,18 @@ uint8_t motor_enable[8] = {1, 0, 0, 0, 0, 0, 0, 0};
 
 C620_Motor_Status_TypeDef motor_status[8];
 C620_Motor_Control_Typedef motor_controll[8];
-PID_TypeDef motor_pids[8];
+PID_TypeDef motor_speed_pids[8];
 
 void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status);
-void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status);
+void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status, int16_t *speed);
 
 void Controller_Init()
 {
-    PID_Init(&motor_pids[0], 0.025, 0.002, 0.0015, 20, -20);
+    PID_Init(&motor_speed_pids[0], 0.025, 0.002, 0.0015, 20, -20);
     for (size_t i = 0; i < 8; i++) {
         motor_status[i].id   = i + 1;
         motor_controll[i].id = i + 1;
     }
-
-    motor_pids[0].target = -20;
 }
 
 void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
@@ -46,14 +44,14 @@ void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status)
 {
 }
 
-void C620_Motor_PID_Update()
+void C620_Motor_Speed_PID_Update(int16_t *speed)
 {
     uint8_t message1[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t message1_enable = 0;
     for (size_t i = 0; i < 4; i++) {
         if (motor_enable[i]) {
             message1_enable = 1;
-            Single_C620_Motor_Speed_PID_Update(&motor_status[i]);
+            Single_C620_Motor_Speed_PID_Update(&motor_status[i], speed + i);
             C620_Motor_Control_Init(&motor_controll[i], message1);
         }
     }
@@ -66,7 +64,7 @@ void C620_Motor_PID_Update()
     for (size_t i = 4; i < 8; i++) {
         if (motor_enable[i]) {
             message2_enable = 1;
-            Single_C620_Motor_Speed_PID_Update(&motor_status[i]);
+            Single_C620_Motor_Speed_PID_Update(&motor_status[i], speed + i);
             C620_Motor_Control_Init(&motor_controll[i], message2);
         }
     }
@@ -75,7 +73,8 @@ void C620_Motor_PID_Update()
     }
 }
 
-void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status)
+void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status, int16_t *speed)
 {
-    motor_controll[status->id - 1].current = PID_Calculate(&motor_pids[status->id - 1], status->speed);
+    motor_speed_pids[status->id - 1].target      = *speed;
+    motor_controll[status->id - 1].current = PID_Calculate(&motor_speed_pids[status->id - 1], status->speed);
 }

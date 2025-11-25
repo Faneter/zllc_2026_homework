@@ -2,20 +2,26 @@
 #include "c620.h"
 #include "pid.h"
 #include "can.h"
+#include "debug.h"
+
+uint8_t motor_enable[8] = {1, 0, 0, 0, 0, 0, 0, 0};
 
 C620_Motor_Status_TypeDef motor_status[8];
 C620_Motor_Control_Typedef motor_controll[8];
 PID_TypeDef motor_pids[8];
 
 void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status);
-void C620_Single_Motor_PID_Update(C620_Motor_Status_TypeDef *status);
+void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status);
 
 void Controller_Init()
 {
-    PID_Init(&motor_pids[0], 0.02, 0.001, 0.001, 20, -20);
-    motor_status[0].id   = 1;
-    motor_controll[0].id = 1;
-    // motor_pids[0].target = 200;
+    PID_Init(&motor_pids[0], 0.025, 0.002, 0.0015, 20, -20);
+    for (size_t i = 0; i < 8; i++) {
+        motor_status[i].id   = i + 1;
+        motor_controll[i].id = i + 1;
+    }
+
+    motor_pids[0].target = -20;
 }
 
 void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
@@ -27,9 +33,11 @@ void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
             C620_Motor_Status_Handler(&motor_status[id - 1]);
         } else if (id == 0) {
             // 模拟电机转动速度反馈
-            // int16_t raw              = (rx_buff[0] << 8) | rx_buff[1];
-            // const float SCALE_FACTOR = 20.0f / 16384.0f;
-            // motor_status[0].speed    = (int16_t)(raw * SCALE_FACTOR * 10);
+            int16_t raw              = (rx_buff[0] << 8) | rx_buff[1];
+            const float SCALE_FACTOR = 20.0f / 16384.0f;
+            motor_status[0].speed    = (int16_t)(raw * SCALE_FACTOR * 10);
+            float debug              = motor_status[0].speed;
+            print_debug(&debug, 1);
         }
     }
 }
@@ -40,13 +48,34 @@ void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status)
 
 void C620_Motor_PID_Update()
 {
-    C620_Single_Motor_PID_Update(&motor_status[0]); // 更新ID为1的电机PID
-    uint8_t message[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    C620_Motor_Control_Init(&motor_controll[0], message);
-    CAN_Send(0x200, message, 8);
+    uint8_t message1[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t message1_enable = 0;
+    for (size_t i = 0; i < 4; i++) {
+        if (motor_enable[i]) {
+            message1_enable = 1;
+            Single_C620_Motor_Speed_PID_Update(&motor_status[i]);
+            C620_Motor_Control_Init(&motor_controll[i], message1);
+        }
+    }
+    if (message1_enable) {
+        CAN_Send(0x200, message1, 8);
+    }
+
+    uint8_t message2[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t message2_enable = 0;
+    for (size_t i = 4; i < 8; i++) {
+        if (motor_enable[i]) {
+            message2_enable = 1;
+            Single_C620_Motor_Speed_PID_Update(&motor_status[i]);
+            C620_Motor_Control_Init(&motor_controll[i], message2);
+        }
+    }
+    if (message2_enable) {
+        CAN_Send(0x1FF, message2, 8);
+    }
 }
 
-void C620_Single_Motor_PID_Update(C620_Motor_Status_TypeDef *status)
+void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status)
 {
     motor_controll[status->id - 1].current = PID_Calculate(&motor_pids[status->id - 1], status->speed);
 }

@@ -3,6 +3,7 @@
 #include "pid.h"
 #include "can.h"
 #include "debug.h"
+#include <math.h>
 
 uint8_t motor_enable[8] = {1, 0, 0, 0, 0, 0, 0, 0};
 
@@ -42,6 +43,8 @@ void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
             float last_speed         = motor_status[0].speed;
             motor_status[0].speed    = (int16_t)(raw * SCALE_FACTOR * 10);
             motor_status[0].angle += (last_speed + motor_status[0].speed) * delta_time * 3 / 1000;
+            motor_status[0].angle = fmodf(motor_status[0].angle, 360.0f);
+            motor_status[0].angle = (motor_status[0].angle < 0) ? (motor_status[0].angle + 360.0f) : motor_status[0].angle;
         }
     }
 }
@@ -104,6 +107,15 @@ void C620_Motor_Angle_PID_Update(int16_t *angles)
 
 float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int16_t angle)
 {
+    static float last_angle[8] = {};
+    static int16_t spin_n[8] = {};
     motor_angle_pids[status->id - 1].target = angle;
-    return PID_Calculate(&motor_angle_pids[status->id - 1], status->angle);
+    if (status->angle - last_angle[status->id - 1] > 180.0f) {
+        spin_n[status->id - 1]--;
+    }
+    if (status->angle - last_angle[status->id - 1] < -180.0f) {
+        spin_n[status->id - 1]++;
+    }
+    last_angle[status->id - 1] = status->angle;
+    return PID_Calculate(&motor_angle_pids[status->id - 1], spin_n[status->id - 1] * 360.0f + status->angle);
 }

@@ -57,6 +57,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DEBUG_CHANGE_Pin GPIO_PIN_0
+#define DEBUG_CHANGE_GPIO_Port GPIOA
+#define DEBUG_CHANGE_EXTI_IRQn EXTI0_IRQn
+#define DEBUG_INCREASE_Pin GPIO_PIN_1
+#define DEBUG_INCREASE_GPIO_Port GPIOA
+#define DEBUG_INCREASE_EXTI_IRQn EXTI1_IRQn
+#define DEBUG_DECREASE_Pin GPIO_PIN_2
+#define DEBUG_DECREASE_GPIO_Port GPIOA
+#define DEBUG_DECREASE_EXTI_IRQn EXTI2_IRQn
+#define DEBUG_STOP_Pin GPIO_PIN_3
+#define DEBUG_STOP_GPIO_Port GPIOA
+#define DEBUG_STOP_EXTI_IRQn EXTI3_IRQn
 #define USART_TX_Pin GPIO_PIN_9
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_10

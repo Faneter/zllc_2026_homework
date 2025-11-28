@@ -6,8 +6,11 @@
 void Controller_Init();
 
 void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff);
+void EXTI_Handler(int16_t GPIO_Pin);
 
 void C620_Motor_Speed_PID_Update(int16_t *speed);
 void C620_Motor_Angle_PID_Update(int16_t *angles);
+
+void Debug();
 
 #endif // !__CONTROLLER_H

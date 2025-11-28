@@ -192,7 +192,7 @@ void SysTick_Handler(void)
     if (count == 4) {
         // int16_t speeds[8] = {80};
         // C620_Motor_Speed_PID_Update(speeds);
-        int16_t angles[8] = {300};
+        int16_t angles[8] = {200};
         C620_Motor_Angle_PID_Update(angles);
         count = 0;
     }
@@ -218,10 +218,52 @@ void EXTI0_IRQHandler(void)
     /* USER CODE BEGIN EXTI0_IRQn 0 */
 
     /* USER CODE END EXTI0_IRQn 0 */
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+    HAL_GPIO_EXTI_IRQHandler(DEBUG_CHANGE_Pin);
     /* USER CODE BEGIN EXTI0_IRQn 1 */
 
     /* USER CODE END EXTI0_IRQn 1 */
+}
+
+/**
+ * @brief This function handles EXTI line1 interrupt.
+ */
+void EXTI1_IRQHandler(void)
+{
+    /* USER CODE BEGIN EXTI1_IRQn 0 */
+
+    /* USER CODE END EXTI1_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(DEBUG_INCREASE_Pin);
+    /* USER CODE BEGIN EXTI1_IRQn 1 */
+
+    /* USER CODE END EXTI1_IRQn 1 */
+}
+
+/**
+ * @brief This function handles EXTI line2 interrupt.
+ */
+void EXTI2_IRQHandler(void)
+{
+    /* USER CODE BEGIN EXTI2_IRQn 0 */
+
+    /* USER CODE END EXTI2_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(DEBUG_DECREASE_Pin);
+    /* USER CODE BEGIN EXTI2_IRQn 1 */
+
+    /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
+ * @brief This function handles EXTI line3 interrupt.
+ */
+void EXTI3_IRQHandler(void)
+{
+    /* USER CODE BEGIN EXTI3_IRQn 0 */
+
+    /* USER CODE END EXTI3_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(DEBUG_STOP_Pin);
+    /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+    /* USER CODE END EXTI3_IRQn 1 */
 }
 
 /**

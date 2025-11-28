@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <math.h>
 
-uint8_t motor_enable[8] = {1, 0, 0, 0, 0, 0, 0, 0};
+uint8_t motor_enable = 0x01;
 
 C620_Motor_Status_TypeDef motor_status[8];
 C620_Motor_Control_Typedef motor_controll[8];
@@ -19,12 +19,12 @@ float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int1
 void Controller_Init()
 {
     PID_Init(&motor_speed_pids[0], 0.025, 0.002, 0.0015, 20, -20);
-    PID_Init(&motor_angle_pids[0], 0.1, 0.00007, 0.00002, 20, -20);
+    PID_Init(&motor_angle_pids[0], 0.1, 0.00015, 0.00002, 20, -20);
     for (size_t i = 0; i < 8; i++) {
         motor_status[i].id   = i + 1;
         motor_controll[i].id = i + 1;
     }
-    motor_status[0].angle = 30;
+    motor_status[0].angle = 80;
 }
 
 void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
@@ -50,6 +50,17 @@ void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
     }
 }
 
+void EXTI_Handler(int16_t GPIO_Pin) {
+    switch (GPIO_Pin)
+    {
+    case DEBUG_CHANGE_Pin:
+        
+        break;
+    default:
+        break;
+    }
+}
+
 void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status)
 {
 }
@@ -59,7 +70,7 @@ void C620_Motor_Speed_PID_Update(int16_t *speeds)
     uint8_t message1[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t message1_enable = 0;
     for (size_t i = 0; i < 4; i++) {
-        if (motor_enable[i]) {
+        if (motor_enable & (1 << i)) {
             message1_enable = 1;
             Single_C620_Motor_Speed_PID_Update(motor_status + i, speeds[i]);
             C620_Motor_Control_Init(motor_controll + i, message1);
@@ -72,7 +83,7 @@ void C620_Motor_Speed_PID_Update(int16_t *speeds)
     uint8_t message2[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t message2_enable = 0;
     for (size_t i = 4; i < 8; i++) {
-        if (motor_enable[i]) {
+        if (motor_enable & (1 << i)) {
             message2_enable = 1;
             Single_C620_Motor_Speed_PID_Update(motor_status + i, speeds[i]);
             C620_Motor_Control_Init(motor_controll + i, message2);
@@ -98,7 +109,7 @@ void C620_Motor_Angle_PID_Update(int16_t *angles)
 {
     static int16_t speeds[8] = {};
     for (size_t i = 0; i < 8; i++) {
-        if (motor_enable[i]) {
+        if (motor_enable & (1 << i)) {
             speeds[i] = Single_C620_Motor_Angle_PID_Update(motor_status + i, angles[i]);
         }
     }
@@ -126,4 +137,8 @@ float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int1
     }
     last_angle[id] = angle;
     return PID_Calculate(&motor_angle_pids[id], spin_n[id] * 360.0f + angle);
+}
+
+void Debug() {
+
 }

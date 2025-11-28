@@ -193,14 +193,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    switch (GPIO_Pin) {
-        case GPIO_PIN_0:
-            // TODO 外部中断处理代码
-            __NOP();
-            break;
-        default:
-            break;
-    }
+    EXTI_Handler(GPIO_Pin);
 }
 
 /**
@@ -231,7 +224,6 @@ void Error_Handler(void)
     }
     /* USER CODE END Error_Handler_Debug */
 }
-
 #ifdef USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number

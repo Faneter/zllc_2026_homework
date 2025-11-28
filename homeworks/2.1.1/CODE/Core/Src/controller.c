@@ -14,16 +14,17 @@ PID_TypeDef motor_angle_pids[8];
 
 void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status);
 void Single_C620_Motor_Speed_PID_Update(C620_Motor_Status_TypeDef *status, int16_t speed);
-float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int16_t angle);
+float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int16_t target_angle);
 
 void Controller_Init()
 {
     PID_Init(&motor_speed_pids[0], 0.025, 0.002, 0.0015, 20, -20);
-    PID_Init(&motor_angle_pids[0], 0.07, 0, 0, 20, -20);
+    PID_Init(&motor_angle_pids[0], 0.1, 0.00007, 0.00002, 20, -20);
     for (size_t i = 0; i < 8; i++) {
         motor_status[i].id   = i + 1;
         motor_controll[i].id = i + 1;
     }
+    motor_status[0].angle = 30;
 }
 
 void CAN_RxHandler(uint32_t stdId, const uint8_t *rx_buff)
@@ -55,8 +56,6 @@ void C620_Motor_Status_Handler(C620_Motor_Status_TypeDef *status)
 
 void C620_Motor_Speed_PID_Update(int16_t *speeds)
 {
-
-    static float debug[2]   = {};
     uint8_t message1[8]     = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t message1_enable = 0;
     for (size_t i = 0; i < 4; i++) {
@@ -83,8 +82,9 @@ void C620_Motor_Speed_PID_Update(int16_t *speeds)
         CAN_Send(0x1FF, message2, 8);
     }
 
-    debug[0] = motor_status[0].speed;
-    debug[1] = motor_status[0].angle;
+    static float debug[2] = {};
+    debug[0]              = motor_status[0].speed;
+    debug[1]              = motor_status[0].angle;
     print_debug(debug, 2);
 }
 
@@ -105,17 +105,25 @@ void C620_Motor_Angle_PID_Update(int16_t *angles)
     C620_Motor_Speed_PID_Update(speeds);
 }
 
-float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int16_t angle)
+float Single_C620_Motor_Angle_PID_Update(C620_Motor_Status_TypeDef *status, int16_t target_angle)
 {
+    static float start_angle[8]   = {-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f};
     static float last_angle[8] = {};
-    static int16_t spin_n[8] = {};
-    motor_angle_pids[status->id - 1].target = angle;
-    if (status->angle - last_angle[status->id - 1] > 180.0f) {
-        spin_n[status->id - 1]--;
+    static int16_t spin_n[8]   = {};
+
+    uint8_t id  = status->id - 1;
+    float angle = status->angle;
+
+    if (start_angle[id] - (-1.0f) <= 1e-6) {
+        start_angle[id] = angle;
     }
-    if (status->angle - last_angle[status->id - 1] < -180.0f) {
-        spin_n[status->id - 1]++;
+    motor_angle_pids[id].target = target_angle + start_angle[id];
+    if (angle - last_angle[id] > 180.0f) {
+        spin_n[id]--;
     }
-    last_angle[status->id - 1] = status->angle;
-    return PID_Calculate(&motor_angle_pids[status->id - 1], spin_n[status->id - 1] * 360.0f + status->angle);
+    if (angle - last_angle[id] < -180.0f) {
+        spin_n[id]++;
+    }
+    last_angle[id] = angle;
+    return PID_Calculate(&motor_angle_pids[id], spin_n[id] * 360.0f + angle);
 }

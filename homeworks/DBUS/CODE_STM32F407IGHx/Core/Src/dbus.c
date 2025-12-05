@@ -4,6 +4,7 @@
 
 uint8_t dbus_rx_buffer[50];
 uint8_t dbus_frame_data[18];
+uint16_t received_count = 0;
 
 DBUS_Control_Typedef DBUS_Control;
 
@@ -30,7 +31,7 @@ void DBUS_UART_Handler(UART_HandleTypeDef *huart)
     __HAL_UART_CLEAR_IDLEFLAG(huart);
     __HAL_DMA_DISABLE(huart->hdmarx);
 
-    uint16_t received_count = sizeof(dbus_rx_buffer) - __HAL_DMA_GET_COUNTER(huart->hdmarx);
+    received_count = sizeof(dbus_rx_buffer) - __HAL_DMA_GET_COUNTER(huart->hdmarx);
 
     if (received_count == 18)
     {

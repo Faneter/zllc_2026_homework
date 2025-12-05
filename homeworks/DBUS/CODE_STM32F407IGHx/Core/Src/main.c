@@ -34,7 +34,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define UART_RX_BUFF_LENGTH 64
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,13 +44,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t UART_RxBuff[UART_RX_BUFF_LENGTH];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void dbus_uart_init(void); // DBUS串口初始化
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,7 +89,6 @@ int main(void)
     MX_USART3_UART_Init();
     /* USER CODE BEGIN 2 */
     DBUS_UART_Init(&huart3);
-    // HAL_UARTEx_ReceiveToIdle_DMA(&huart3, UART_RxBuff, UART_RX_BUFF_LENGTH);
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -152,27 +148,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
- * @brief  Reception Event Callback (Rx event notification called after use of advanced reception service).
- * @param  huart UART handle
- * @param  Size  Number of data available in application reception buffer (indicates a position in
- *               reception buffer until which, data are available)
- * @retval None
- */
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-    if (huart->Instance == USART3)
-    {
-        // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)"T", 2);
-        if (Size == DBUS_CONTROL_DATA_LEN)
-        {
-            // DBUS_DataHandler(UART_RxBuff);
-        }
-        // 开始接受下一组数据
-        // HAL_UARTEx_ReceiveToIdle_DMA(&huart3, UART_RxBuff, UART_RX_BUFF_LENGTH);
-    }
-    // TODO 若存在多个串口，在此处继续添加代码即可
-}
 /* USER CODE END 4 */
 
 /**

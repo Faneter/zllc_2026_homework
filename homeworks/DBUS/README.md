@@ -122,10 +122,7 @@ void DBUS_DataHandler(uint8_t *data)
 
 ## 实际效果
 
-<video width="800" controls>
-    <source src="./videos/15-30-05-12-2025.mp4" type="video/mp4">
-    您的浏览器不支持 video 标签。
-</video>
+[实际效果](./videos/15-30-05-12-2025.mp4)
 
 ## 开发过程中遇到的问题
 

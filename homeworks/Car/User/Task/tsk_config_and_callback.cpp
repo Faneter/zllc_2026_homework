@@ -48,12 +48,11 @@
 
 Class_DJI_Motor_C620 Motor_Wheel[4];
 Class_DR16 DR16;
-
+Enum_Chassis_Control_Type Chassis_Control_Type = Chassis_Control_Type_DISABLE;
 /* Private function declarations ---------------------------------------------*/
 
 /* Function prototypes -------------------------------------------------------*/
 
-#ifdef LEARNING
 /**
  * @brief Chassis_CAN1回调函数
  *
@@ -85,59 +84,167 @@ void Chassis_Device_CAN1_Callback(Struct_CAN_Rx_Buffer *CAN_RxMessage)
     break;
     }
 }
-#endif
 
-#ifdef LEARNING
-void DR16_UART3_Callback(uint8_t *Buffer, uint16_t Length)
+void speed_resolution()
 {
     const float Dead_Zone = 0.05;
     const float Velocity_Max = 2.0f;
 
-    DR16.DR16_UART_RxCpltCallback(Buffer);
-
-    // TODO 底盘控制策略
-    float dr16_l_x, dr16_l_y, dr16_r_x;
-    // 排除遥控器死区
-    dr16_l_x = (Math_Abs(DR16.Get_Left_X()) > Dead_Zone) ? DR16.Get_Left_X() : 0;
-    dr16_l_y = (Math_Abs(DR16.Get_Left_Y()) > Dead_Zone) ? DR16.Get_Left_Y() : 0;
-    dr16_r_x = (Math_Abs(DR16.Get_Right_X()) > Dead_Zone) ? DR16.Get_Right_X() : 0;
-
-    // 设定矩形到圆形映射进行控制
-    float chassis_velocity_x = dr16_l_x * sqrt(1.0f - dr16_l_y * dr16_l_y / 2.0f) * Velocity_Max;
-    float chassis_velocity_y = dr16_l_y * sqrt(1.0f - dr16_l_x * dr16_l_x / 2.0f) * Velocity_Max;
-
-    // 设定角速度
-    float chassis_omega = -dr16_r_x * Velocity_Max;
-
-    // 底盘四电机模式配置
-    for (int i = 0; i < 4; i++)
+    if (Chassis_Control_Type == Chassis_Control_Type_FLLOW)
     {
-        Motor_Wheel[i].Set_DJI_Motor_Control_Method(DJI_Motor_Control_Method_OMEGA);
+
+        float dr16_l_x, dr16_l_y, dr16_r_x;
+        // 排除遥控器死区
+        dr16_l_x = (Math_Abs(DR16.Get_Left_X()) > Dead_Zone) ? DR16.Get_Left_X() : 0;
+        dr16_l_y = (Math_Abs(DR16.Get_Left_Y()) > Dead_Zone) ? DR16.Get_Left_Y() : 0;
+        dr16_r_x = (Math_Abs(DR16.Get_Right_X()) > Dead_Zone) ? DR16.Get_Right_X() : 0;
+
+        // 设定矩形到圆形映射进行控制
+        float chassis_velocity_x = dr16_l_x * sqrt(1.0f - dr16_l_y * dr16_l_y / 2.0f) * Velocity_Max;
+        float chassis_velocity_y = dr16_l_y * sqrt(1.0f - dr16_l_x * dr16_l_x / 2.0f) * Velocity_Max;
+
+        // 设定角速度
+        float chassis_omega = -dr16_r_x * Velocity_Max;
+
+        // 底盘四电机模式配置
+        for (int i = 0; i < 4; i++)
+        {
+            Motor_Wheel[i].Set_DJI_Motor_Control_Method(DJI_Motor_Control_Method_OMEGA);
+        }
+
+        // 速度换算，正运动学分解
+        float motor1_temp_linear_vel = chassis_velocity_y - chassis_velocity_x + chassis_omega * (HALF_WIDTH + HALF_LENGTH);
+        float motor2_temp_linear_vel = chassis_velocity_y + chassis_velocity_x - chassis_omega * (HALF_WIDTH + HALF_LENGTH);
+        float motor3_temp_linear_vel = chassis_velocity_y + chassis_velocity_x + chassis_omega * (HALF_WIDTH + HALF_LENGTH);
+        float motor4_temp_linear_vel = chassis_velocity_y - chassis_velocity_x - chassis_omega * (HALF_WIDTH + HALF_LENGTH);
+
+        // 线速度 cm/s  转角速度  RAD
+        float motor1_temp_rad = motor1_temp_linear_vel * VEL2RAD;
+        float motor2_temp_rad = motor2_temp_linear_vel * VEL2RAD;
+        float motor3_temp_rad = motor3_temp_linear_vel * VEL2RAD;
+        float motor4_temp_rad = motor4_temp_linear_vel * VEL2RAD;
+        // 角速度*减速比  设定目标 直接给到电机输出轴
+        Motor_Wheel[0].Set_Target_Omega_Radian(motor2_temp_rad);
+        Motor_Wheel[1].Set_Target_Omega_Radian(-motor1_temp_rad);
+        Motor_Wheel[2].Set_Target_Omega_Radian(-motor3_temp_rad);
+        Motor_Wheel[3].Set_Target_Omega_Radian(motor4_temp_rad);
+    }
+    else if (Chassis_Control_Type == Chassis_Control_Type_DISABLE)
+    {
+        // 底盘失能 四轮子自锁
+        for (int i = 0; i < 4; i++)
+        {
+            Motor_Wheel[i].Set_DJI_Motor_Control_Method(DJI_Motor_Control_Method_OMEGA);
+            Motor_Wheel[i].PID_Angle.Set_Integral_Error(0.0f);
+            Motor_Wheel[i].Set_Target_Omega_Radian(0.0f);
+        }
     }
 
-    // 速度换算，正运动学分解
-    float motor1_temp_linear_vel = chassis_velocity_y - chassis_velocity_x + chassis_omega * (HALF_WIDTH + HALF_LENGTH);
-    float motor2_temp_linear_vel = chassis_velocity_y + chassis_velocity_x - chassis_omega * (HALF_WIDTH + HALF_LENGTH);
-    float motor3_temp_linear_vel = chassis_velocity_y + chassis_velocity_x + chassis_omega * (HALF_WIDTH + HALF_LENGTH);
-    float motor4_temp_linear_vel = chassis_velocity_y - chassis_velocity_x - chassis_omega * (HALF_WIDTH + HALF_LENGTH);
-
-    // 线速度 cm/s  转角速度  RAD
-    float motor1_temp_rad = motor1_temp_linear_vel * VEL2RAD;
-    float motor2_temp_rad = motor2_temp_linear_vel * VEL2RAD;
-    float motor3_temp_rad = motor3_temp_linear_vel * VEL2RAD;
-    float motor4_temp_rad = motor4_temp_linear_vel * VEL2RAD;
-    // 角速度*减速比  设定目标 直接给到电机输出轴
-    Motor_Wheel[0].Set_Target_Omega_Radian(motor2_temp_rad);
-    Motor_Wheel[1].Set_Target_Omega_Radian(-motor1_temp_rad);
-    Motor_Wheel[2].Set_Target_Omega_Radian(-motor3_temp_rad);
-    Motor_Wheel[3].Set_Target_Omega_Radian(motor4_temp_rad);
     // 各个电机具体PID
     for (int i = 0; i < 4; i++)
     {
         Motor_Wheel[i].TIM_PID_PeriodElapsedCallback();
     }
 }
+
+#ifdef LEARNING
+void DR16_UART3_Callback(uint8_t *Buffer, uint16_t Length)
+{
+    DR16.DR16_UART_RxCpltCallback(Buffer);
+}
 #endif
+
+void Reload_TIM_Status_PeriodElapsedCallback()
+{
+    static uint8_t DR16_STATUS = 0;
+    static uint32_t time = 0;
+
+    switch (DR16_STATUS)
+    {
+    // 离线检测状态
+    case (0):
+    {
+        // 遥控器中途断联导致错误离线 跳转到 遥控器串口错误状态
+        if (huart3.ErrorCode)
+        {
+            time = 0;
+            DR16_STATUS = 4;
+        }
+
+        // 转移为 在线状态
+        if (DR16.Get_DR16_Status() == DR16_Status_ENABLE)
+        {
+            time = 0;
+            DR16_STATUS = 2;
+        }
+
+        // 超过一秒的遥控器离线 跳转到 遥控器关闭状态
+        if (time > 200)
+        {
+            time = 0;
+            DR16_STATUS = 1;
+        }
+    }
+    break;
+    // 遥控器关闭状态
+    case (1):
+    {
+        // 离线保护
+        Chassis_Control_Type = Chassis_Control_Type_DISABLE;
+
+        if (DR16.Get_DR16_Status() == DR16_Status_ENABLE)
+        {
+            time = 0;
+            DR16_STATUS = 2;
+        }
+
+        // 遥控器中途断联导致错误离线 跳转到 遥控器串口错误状态
+        if (huart3.ErrorCode)
+        {
+            time = 0;
+            DR16_STATUS = 4;
+        }
+    }
+    break;
+    // 遥控器在线状态
+    case (2):
+    {
+        // 转移为 刚离线状态
+        if (DR16.Get_DR16_Status() == DR16_Status_DISABLE)
+        {
+            time = 0;
+            DR16_STATUS = 3;
+        }
+        else
+        {
+            Chassis_Control_Type = Chassis_Control_Type_FLLOW;
+        }
+    }
+    break;
+    // 刚离线状态
+    case (3):
+    {
+        // 无条件转移到 离线检测状态
+        time = 0;
+        DR16_STATUS = 0;
+    }
+    break;
+    // 遥控器串口错误状态
+    case (4):
+    {
+        HAL_UART_DMAStop(&huart3); // 停止以重启
+        // HAL_Delay(10); // 等待错误结束
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart3, UART3_Manage_Object.Rx_Buffer, UART3_Manage_Object.Rx_Buffer_Length);
+
+        // 处理完直接跳转到 离线检测状态
+        time = 0;
+        DR16_STATUS = 0;
+    }
+    break;
+    }
+
+    time++;
+}
 
 /**
  * @brief TIM4任务回调函数
@@ -154,11 +261,17 @@ void Task100us_TIM4_Callback()
 
 void Task1ms_TIM5_Callback()
 {
-    // 统一打包发送
-    if (DR16.Get_Left_Switch() == DR16_Switch_Status_MIDDLE)
+    static uint8_t mod = 0;
+    if (++mod == 50)
     {
-        TIM_CAN_PeriodElapsedCallback();
+        DR16.TIM1msMod50_Alive_PeriodElapsedCallback();
+        mod = 0;
     }
+    Reload_TIM_Status_PeriodElapsedCallback();
+    speed_resolution();
+
+    // 统一打包发送
+    TIM_CAN_PeriodElapsedCallback();
 }
 
 /**
@@ -169,7 +282,6 @@ extern "C" void Task_Init()
 {
 
     DWT_Init(168);
-    // TODO 初始化
     // 手柄初始化
     DR16.Init(&huart3, nullptr);
 
@@ -185,10 +297,8 @@ extern "C" void Task_Init()
     Motor_Wheel[2].Init(&hcan1, DJI_Motor_ID_0x203);
     Motor_Wheel[3].Init(&hcan1, DJI_Motor_ID_0x204);
 
-#ifdef LEARNING
     CAN_Init(&hcan1, Chassis_Device_CAN1_Callback);
     UART_Init(&huart3, DR16_UART3_Callback, 18);
-#endif // LEARNING
 
     // 定时器循环任务
     TIM_Init(&htim4, Task100us_TIM4_Callback);

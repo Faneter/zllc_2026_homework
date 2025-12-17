@@ -60,6 +60,8 @@ typedef struct BMI088_Data_Typedef {
     BMI088_Error bmi088_err;
 } BMI088_Data_Typedef;
 
+extern bool BMI088_Init_Flag;
+
 // 基础函数
 void WriteDataToAcc(uint8_t addr, uint8_t data);
 void WriteDataToGyro(uint8_t addr, uint8_t data);

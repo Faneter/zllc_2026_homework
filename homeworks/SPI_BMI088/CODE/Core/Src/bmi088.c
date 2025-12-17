@@ -1,6 +1,8 @@
 #include "bmi088.h"
 #include "bmi088_reg.h"
 
+bool BMI088_Init_Flag = false;
+
 BMI088_Error BMI088_Init()
 {
     BMI088_Error error = NO_ERR;
@@ -17,6 +19,7 @@ BMI088_Error BMI088_Init()
     { // 将来改成变量控制自检
         error |= VerifyGyroSelfTest();
     }
+    BMI088_Init_Flag = true;
     return error;
 }
 

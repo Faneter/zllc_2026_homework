@@ -6,6 +6,7 @@ packDir: null
 srcDirs:
   - Drivers
   - Core
+  - Middlewares
 virtualFolder:
   name: <virtual_root>
   files:
@@ -21,12 +22,9 @@ targets:
       defineList:
         - USE_HAL_DRIVER
         - STM32F407xx
-      incList:
-        - Core/Inc
-        - Drivers/STM32F4xx_HAL_Driver/Inc
-        - Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
-        - Drivers/CMSIS/Device/ST/STM32F4xx/Include
-        - Drivers/CMSIS/Include
+        - ARM_MATH_CM4
+        - __FPU_PRESENT
+      incList: []
       libList: []
     excludeList: []
     toolchain: GCC

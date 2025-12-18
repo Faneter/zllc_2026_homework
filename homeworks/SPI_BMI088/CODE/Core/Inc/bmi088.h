@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include "math.h"
 
-#include "main.h"
 #include "spi.h"
 #include "gpio.h"
+#include "bmi088_reg.h"
 
 // BMI088 所使用的SPI
 #define BMI088_SPI hspi1

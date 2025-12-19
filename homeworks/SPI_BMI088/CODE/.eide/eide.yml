@@ -152,14 +152,14 @@ targets:
         baseAddr: ""
         bin: ""
         cpuInfo:
-          cpuName: "null"
-          vendor: "null"
+          cpuName: STM32F407IG
+          vendor: ST
         otherCmds: ""
         proType: 1
         speed: 8000
       OpenOCD:
         baseAddr: "0x08000000"
         bin: ""
-        interface: cmsis-dap
+        interface: jlink
         target: stm32f4x
-    uploader: OpenOCD
+    uploader: JLink

@@ -27,7 +27,7 @@ typedef struct {
     uint32_t timestamp_ms;  // 时间戳
 } AttitudeData;
 
-static AttitudeData current_attitude;
+AttitudeData current_attitude;
 
 // 初始化滤波器和EKF
 void BMI088_Attitude_Init(float dt)
@@ -74,9 +74,9 @@ void BMI088_Attitude_Update(void)
     ReadGyroData(&gyro_raw);
 
     // 从rad/s转换到deg/s（如果需要）
-    float gyro_x_deg = gyro_raw.roll * RAD2DEG;  // 注意：roll对应绕X轴的旋转
-    float gyro_y_deg = gyro_raw.pitch * RAD2DEG; // pitch对应绕Y轴的旋转
-    float gyro_z_deg = gyro_raw.yaw * RAD2DEG;   // yaw对应绕Z轴的旋转
+    float gyro_x_deg = gyro_raw.roll;  // 注意：roll对应绕X轴的旋转
+    float gyro_y_deg = gyro_raw.pitch; // pitch对应绕Y轴的旋转
+    float gyro_z_deg = gyro_raw.yaw;   // yaw对应绕Z轴的旋转
 
     // 应用滤波处理
     // 1. 滑动平均滤波
@@ -107,9 +107,9 @@ void BMI088_Attitude_Update(void)
     int use_acc_update = (acc_magnitude > 0.8f * g && acc_magnitude < 1.2f * g);
 
     // 将deg/s转换为rad/s用于EKF
-    float gyro_x_rad = gyro_x_filtered * DEG2RAD;
-    float gyro_y_rad = gyro_y_filtered * DEG2RAD;
-    float gyro_z_rad = gyro_z_filtered * DEG2RAD;
+    float gyro_x_rad = gyro_x_filtered;
+    float gyro_y_rad = gyro_y_filtered;
+    float gyro_z_rad = gyro_z_filtered;
 
     // EKF预测步骤（使用陀螺仪）
     AttitudeEKF_Predict(&attitude_ekf, gyro_x_rad, gyro_y_rad, gyro_z_rad);

@@ -1,15 +1,51 @@
-# dot files
-/.vscode/launch.json
-/.settings
-/.eide/log
-/.eide.usr.ctx.json
+# 输出文件
+infantry/
+# keil debug配置文件
+DebugConfig/
 
-# project out
-/build
-/bin
-/obj
-/out
+RTE/
 
-# eide template
-*.ept
-*.eide-template
+* MDK-ARM.code-workspace
+*.eide.usr.ctx.json
+*.clang-format
+
+*.rar
+*.o
+*.d
+*.crf
+*.htm
+*.dep
+*.map
+*.bak
+*.lnp
+*.lst
+*.ini
+*.iex
+*.sct
+*.scvd
+*.dbg*
+
+MDK-ARM/JLinkLog.txt
+*.jdebug
+*.jdebug.*
+
+*.axf
+*.exf
+*.elf
+
+# 编译生成的文件
+build/
+
+#keil 工程配置文件
+*.uvoptx
+*.uvguix.*
+*.mxproject
+
+
+
+
+
+
+
+
+

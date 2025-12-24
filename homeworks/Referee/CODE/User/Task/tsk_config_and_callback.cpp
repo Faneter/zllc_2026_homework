@@ -15,10 +15,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-uint32_t init_finished =0 ;
-bool start_flag=0;
-//机器人控制对象
-Class_Chariot chariot;
+uint32_t init_finished = 0;
+bool start_flag = false;
+// 机器人控制对象
 Class_Referee Referee;
 
 /* Private function declarations ---------------------------------------------*/
@@ -33,7 +32,7 @@ Class_Referee Referee;
  */
 void Referee_UART6_Callback(uint8_t *Buffer, uint16_t Length)
 {
-    chariot.Referee.UART_RxCpltCallback(Buffer,Length);
+    Referee.UART_RxCpltCallback(Buffer, Length);
 }
 
 /**
@@ -44,8 +43,6 @@ void Task100us_TIM4_Callback()
 {
 }
 
-
-
 /**
  * @brief TIM5任务回调函数
  *
@@ -54,23 +51,24 @@ void Task100us_TIM4_Callback()
 void Task1ms_TIM5_Callback()
 {
     init_finished++;
-    if(init_finished>2000)
-    start_flag=1;
+    if (init_finished > 2000)
+        start_flag = true;
 
     /************ 判断设备在线状态判断 50ms (所有device:电机，遥控器，裁判系统等) ***************/
-    
+
     static uint8_t mod50 = 0;
-    if (++mod50 >= 50) {
+    if (++mod50 >= 50)
+    {
         Referee.TIM1msMod50_Alive_PeriodElapsedCallback();
         mod50 = 0;
     }
 
     /****************************** 交互层回调函数 1ms *****************************************/
-    if(start_flag==1)
+    if (start_flag)
     {
-    /****************************** 驱动层回调函数 1ms *****************************************/ 
-        //统一打包发送
-        TIM_UART_PeriodElapsedCallback();      
+        /****************************** 驱动层回调函数 1ms *****************************************/
+        // 统一打包发送
+        TIM_UART_PeriodElapsedCallback();
     }
 }
 
@@ -79,21 +77,21 @@ void Task1ms_TIM5_Callback()
  *
  */
 extern "C" void Task_Init()
-{  
+{
 
     DWT_Init(168);
 
     /********************************** 驱动层初始化 **********************************/
-    //裁判系统
-    UART_Init(&huart6, Referee_UART6_Callback, 128);   //并未使用环形队列 尽量给长范围增加检索时间 减少丢包
+    // 裁判系统
+    UART_Init(&huart6, Referee_UART6_Callback, 128); // 并未使用环形队列 尽量给长范围增加检索时间 减少丢包
 
-    //定时器循环任务
+    // 定时器循环任务
     TIM_Init(&htim4, Task100us_TIM4_Callback);
     TIM_Init(&htim5, Task1ms_TIM5_Callback);
 
     /********************************* 设备层初始化 *********************************/
 
-    //设备层集成在交互层初始化中，没有显视地初始化
+    // 设备层集成在交互层初始化中，没有显视地初始化
 
     /********************************* 交互层初始化 *********************************/
 
@@ -109,6 +107,6 @@ extern "C" void Task_Init()
  * @brief 前台循环任务
  *
  */
- extern "C" void Task_Loop()
+extern "C" void Task_Loop()
 {
 }

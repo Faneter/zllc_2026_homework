@@ -823,7 +823,6 @@ struct Struct_Referee_Rx_Data_Robot_Power_Heat
     float Chassis_Power;
     uint16_t Chassis_Energy_Buffer;
     uint16_t Booster_17mm_1_Heat;
-    uint16_t Booster_17mm_2_Heat;
     uint16_t Booster_42mm_Heat;
     uint16_t CRC_16;
 } __attribute__((packed));
@@ -1852,16 +1851,6 @@ uint16_t Class_Referee::Get_Chassis_Energy_Buffer()
 uint16_t Class_Referee::Get_Booster_17mm_1_Heat()
 {
     return (Robot_Power_Heat.Booster_17mm_1_Heat);
-}
-
-/**
- * @brief 获取17mm2热量
- *
- * @return uint16_t 17mm2热量
- */
-uint16_t Class_Referee::Get_Booster_17mm_2_Heat()
-{
-    return (Robot_Power_Heat.Booster_17mm_2_Heat);
 }
 
 /**

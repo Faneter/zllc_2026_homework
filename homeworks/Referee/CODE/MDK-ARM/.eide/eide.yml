@@ -360,6 +360,6 @@ targets:
       OpenOCD:
         baseAddr: "0x08000000"
         bin: ""
-        interface: cmsis-dap
+        interface: jlink
         target: stm32f4x
-    uploader: OpenOCD
+    uploader: JLink

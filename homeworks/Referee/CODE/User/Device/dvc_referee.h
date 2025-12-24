@@ -823,6 +823,7 @@ struct Struct_Referee_Rx_Data_Robot_Power_Heat
     float Chassis_Power;
     uint16_t Chassis_Energy_Buffer;
     uint16_t Booster_17mm_1_Heat;
+    uint16_t Booster_17mm_2_Heat;
     uint16_t Booster_42mm_Heat;
     uint16_t CRC_16;
 } __attribute__((packed));

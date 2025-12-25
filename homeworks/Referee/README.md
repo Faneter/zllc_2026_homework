@@ -73,7 +73,47 @@
 
 ### CRC校验
 
+裁判系统中使用到的CRC为CRC8和CRC16。其中CRC8的多项式为
+$$
+x^8+x^5+x^4+1
+$$
+CRC的具体校验函数详见官方通信协议文件[^2]的附录一。实际使用一般为查表，而非现场计算。
 
+## 具体代码实现
+
+### 接受事件代码
+
+```c
+void Referee_UART6_Callback(uint8_t *Buffer, uint16_t Length)
+{
+    Referee.UART_RxCpltCallback(Buffer, Length);
+}
+```
+
+然后在`Task_Init`函数中进行事件的注册。
+
+```
+UART_Init(&huart6, Referee_UART6_Callback, 128);
+```
+
+### 具体解包细节
+
+裁判系统具体的解包过程在`dvc_referee.cpp`文件中的`Class_Referee::Data_Process`函数中。在这之中找到与下面代码类似的内容。
+
+```c
+switch (CMD_ID)
+{
+    case ...:
+        break;
+    ...
+}
+```
+
+由于裁判系统的数据包格式经常变动，我们需要在使用前检查使用到的`cmd_id`及其值是否正确，具体处理过程中的数据包结构体的格式是否正确。这些部分都定义在`dvc_referee.h`文件中，需要参考官方通信协议文件[^2]的1.2节。
+
+## 总结
+
+本次学习了裁判系统，裁判系统是Robomaster比赛进行的基础，需要深刻理解。同时本次还学习了CRC校验，CRC校验是一种高效率的校验算法，在各个领域，例如CAN、USB等，都有广泛的应用。
 
 
 ---
@@ -83,3 +123,4 @@
 [^1]:https://bbs.robomaster.com/wiki/20204847/804679?source=7
 
 [^2]:https://bbs.robomaster.com/wiki/20204847/811363?source=7
+
